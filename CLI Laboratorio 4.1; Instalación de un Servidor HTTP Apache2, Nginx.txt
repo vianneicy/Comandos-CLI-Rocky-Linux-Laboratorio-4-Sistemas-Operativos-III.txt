@@ -1,0 +1,130 @@
+Comandos utilizados, práctica laboratorio 4.1: Administración de Servicios de Red (Parte 2).
+
+INSTALAR UN SERVIDOR HTTP APACHE2/NGINX
+
+============================================
+
+# Instalamos el servidor Apache con el siguiente comando:
+
+sudo dnf install httpd -y
+
+# Iniciamos el servicio y lo habilitamos para que arranque con el sistema:
+
+sudo systemctl start httpd
+
+sudo systemctl enable httpd
+
+# Verificamos el estado del servicio para confirmar que está activo:
+
+sudo systemctl status httpd
+
+# Entramos al directorio donde se alojan los archivos de los sitios web:
+
+cd /var/www/html
+
+# Creamos un directorio para el primer sitio web estático:
+
+sudo mkdir Hola
+cd Hola
+
+# Creamos el archivo HTML que contendrá el mensaje “Hola Mundo”:
+
+sudo nano index.html
+
+# Pegamos el siguiente contenido:
+<!DOCTYPE html>
+<html>
+<head><title>Hola Mundo</title></head>
+<body><h1>Hola Mundo</h1></body>
+</html>
+
+# Guardamos con Ctrl + O, Enter y salimos con Ctrl + X.
+
+# Editamos el archivo de configuración principal de Apache:
+
+sudo nano /etc/httpd/conf/httpd.conf
+
+# Nos aseguramos de que esté la línea "Listen 80" (ya suele estar por defecto).
+# Luego, al final del archivo agregamos lo siguiente para configurar el VirtualHost del sitio Hola:
+
+<VirtualHost *:80>
+     ServerName hola.localhost
+     DocumentRoot "/var/www/html/Hola"
+     ServerAdmin root@localhost
+</VirtualHost>
+
+# Guardamos con Ctrl + O, Enter y salimos con Ctrl + X.
+
+# Reiniciamos Apache para aplicar los cambios:
+
+sudo systemctl restart httpd
+
+# (Opcional) Agregamos el nombre del servidor al archivo hosts para simular acceso por nombre:
+
+sudo nano /etc/hosts
+
+# Añadimos al final la línea:
+
+127.0.0.1    hola.localhost
+
+# Guardamos y salimos.
+# Abrimos el navegador y accedemos a http://hola.localhost — verificamos que se muestre “Hola Mundo”.
+
+# Ahora volvemos a /var/www/html para crear el segundo sitio:
+
+cd /var/www/html
+sudo mkdir estudiante
+cd estudiante
+
+# Creamos el HTML con los datos personales:
+
+sudo nano index.html
+
+# Pegamos el siguiente contenido:
+
+<!DOCTYPE html>
+<html>
+<head><title>Estudiante</title></head>
+<body>
+<h2>Maria Fernanda Caraballo</h2>
+<p>Matrícula: 2025-0860</p>
+<p>Materia: Sistemas Operativos III<br>
+Docente: Adrian Alcántara</p>
+</body>
+</html>
+
+# Guardamos y salimos.
+
+# Volvemos a editar el archivo de configuración de Apache:
+
+sudo nano /etc/httpd/conf/httpd.conf
+
+# Añadimos la línea para que Apache escuche también en el puerto 8080:
+
+Listen 8080
+
+# Al final del archivo agregamos el nuevo VirtualHost:
+
+<VirtualHost *:8080>
+     ServerName estudiante.localhost
+     DocumentRoot "/var/www/html/estudiante"
+     ServerAdmin root@localhost
+</VirtualHost>
+
+# Guardamos y salimos.
+
+# Reiniciamos nuevamente Apache:
+
+sudo systemctl restart httpd
+
+# (Opcional) Agregamos el segundo nombre al archivo hosts:
+
+sudo nano /etc/hosts
+
+# Añadimos la línea:
+
+127.0.0.1    estudiante.localhost
+
+# Guardamos y salimos.
+
+# Abrimos el navegador y accedemos a http://nombre.localhost:8080 — verificamos que se muestre nuestro nombre, matrícula y materia correctamente.
