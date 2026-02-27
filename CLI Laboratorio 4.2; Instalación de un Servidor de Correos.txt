@@ -1,0 +1,82 @@
+Comandos utilizados, práctica laboratorio 4.2: Administración de Servicios de Red (Parte 2).
+
+INSTALAR UN SERVIDOR DE CORREOS
+
+============================================
+
+# Instalar el servidor de correo Postfix
+
+sudo dnf install postfix -y
+
+# Habilitar e iniciar el servicio Postfix
+
+sudo systemctl enable postfix
+sudo systemctl start postfix
+sudo systemctl status postfix
+
+# Abrir los puertos necesarios en el firewall para envío de correos: 25 (SMTP), 465 (SMTPS) y 587 (Submission, STARTTLS)
+
+sudo firewall-cmd --permanent --add-port=25/tcp
+sudo firewall-cmd --permanent --add-port=465/tcp
+sudo firewall-cmd --permanent --add-port=587/tcp
+sudo firewall-cmd --reload
+
+# Editar el archivo de configuración principal de Postfix para permitir el uso de Gmail como relay SMTP
+
+sudo nano /etc/postfix/main.cf
+
+# Dentro del archivo, verificar y editar/agregar las siguientes líneas:
+
+myorigin = /etc/mailname
+inet_interfaces = all
+mydestination = $myhostname, localhost.$mydomain, localhost
+mynetworks = 127.0.0.0/8, 192.168.1.0/24  
+
+relayhost = [smtp.gmail.com]:587
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+
+
+# Guardar con Ctrl + O, Enter. Salir con Ctrl + X
+
+# Crear el archivo con las credenciales de Gmail para autenticación SMTP
+
+sudo nano /etc/postfix/sasl_passwd
+
+# Agregar esta línea con tu correo y contraseña de aplicación:
+
+[smtp.gmail.com]:587 tu_correo@gmail.com:contraseña_de_aplicación
+
+# Para obtener la contraseña de aplicación, ir a https://myaccount.google.com/apppasswords (solo disponible si tienes la verificación en dos pasos activada), crear una nueva contraseña para "Postfix", copiarla y pegarla aquí.
+
+# Guardar con Ctrl + O, Enter. Salir con Ctrl + X
+
+# Asegurar el archivo para que solo root pueda leerlo
+
+sudo chmod 600 /etc/postfix/sasl_passwd
+
+# Generar el archivo hash que utilizará Postfix
+
+sudo postmap /etc/postfix/sasl_passwd
+
+# Reiniciar el servicio Postfix para aplicar los cambios
+
+sudo systemctl restart postfix
+
+# Crear un archivo con el contenido del mensaje a enviar:
+
+nano mensaje.txt
+
+# Dentro del archivo, escribir el cuerpo del mensaje:
+
+Maria Fernanda Caraballo
+Matrícula: 2025-0860
+
+# Guardar con Ctrl + O, Enter. Salir con Ctrl + X
+
+# Enviar el correo:
+
+mail -s "AsuntoDelCorreo" ejemplo@gmail.com < mensaje.txt
+
+# En caso de no tener la herramienta s-nail instalada para ejecutar el comando mail, el sistema te preguntará si quieres instalarla. Acepta, y luego continúa con el envío.
