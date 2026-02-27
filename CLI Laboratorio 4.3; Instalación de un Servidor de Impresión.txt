@@ -1,0 +1,57 @@
+Comandos utilizados, práctica laboratorio 4.3: Administración de Servicios de Red (Parte 2).
+
+INSTALAR UN SERVIDOR DE IMPRESIÓN
+
+============================================
+
+
+# Instalamos el servidor de impresión CUPS en Rocky Linux:
+
+sudo dnf install cups -y
+
+# Habilitamos e iniciamos el servicio:
+
+sudo systemctl enable --now cups
+
+# Verificamos que el servicio esté activo:
+
+sudo systemctl status cups
+
+# Instalamos la impresora virtual PDF:
+
+sudo dnf install cups-pdf -y
+
+# Abrimos el puerto 631 TCP en el firewall (interfaz web de CUPS):
+
+sudo firewall-cmd --add-port=631/tcp --permanent
+sudo firewall-cmd --reload
+
+# Editamos el archivo de configuración de CUPS:
+
+sudo nano /etc/cups/cupsd.conf
+
+# Dentro del archivo, en 'Listen localhost:631' agregamos 'Port 631' para que escuche en todas las interfaces.
+
+# Luego agregamos 'Allow from 192.168.1.7' (IP del cliente Windows) en las siguientes secciones: <Location />, <Location /admin>, <Location /admin/conf>, <Location /printers>.
+
+# Guardamos con Ctrl+O y salimos con Ctrl+X.
+
+# Reiniciamos el servicio de CUPS para aplicar los cambios:
+
+sudo systemctl restart cups
+
+# Permitimos administración remota, compartir impresoras y aceptar clientes externos:
+
+cupsctl --remote-admin --remote-any --share-printers
+
+# Desde el navegador en la PC con Windows (192.168.1.7), accedemos a: http://192.168.1.8:631
+
+# Vamos a Administration > Add Printer, seleccionamos la impresora PDF, le asignamos un nombre, marcamos "Share this printer", elegimos la marca Generic y el modelo "Generic CUPS-PDF Printer", luego hacemos clic en "Add Printer".
+
+# Copiamos la URL generada (por ejemplo, http://192.168.1.8:631/printers/Fernanda).
+
+# En Windows vamos a Settings > Devices > Printers & scanners > Add printer > The printer I want isn’t listed > Select a shared printer by name, y pegamos la URL (quitando la "s" de https si la tiene).
+
+# Finalizamos la instalación y procedemos a imprimir un documento: Abrimos Word, escribimos un texto, presionamos Ctrl+P, elegimos la impresora creada, y hacemos clic en Print.
+
+# Verificamos en la interfaz web de CUPS accediendo a http://192.168.1.8:631/printers/tuimpresora y visualizando los trabajos completados. También se puede visualizar en el servidor que el PDF fue generado correctamente en la ruta: /var/spool/cups-pdf/ANONYMOUS/
